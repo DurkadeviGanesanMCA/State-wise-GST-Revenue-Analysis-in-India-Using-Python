@@ -11,10 +11,15 @@ st.set_page_config(
 # -----------------------------
 # Load Data
 # -----------------------------
-import pandas as pd
-
+@st.cache_data
 def load_data():
-    df = pd.read_csv("cleaned_data.csv")
+    df = pd.read_csv("sales.csv")
+
+    df["Date"] = pd.to_datetime(df["Date"], dayfirst=True)
+    df["Year"] = df["Date"].dt.year
+    df["Month_Name"] = df["Date"].dt.strftime("%b")
+    df["Month_Num"] = df["Date"].dt.month
+
     return df
 
 df = load_data()
