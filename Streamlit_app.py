@@ -30,21 +30,21 @@ df = load_data()
 
 st.sidebar.header("Filters")
 
-selected_years = st.sidebar.multiselect(
+years = st.sidebar.multiselect(
     "Select Year",
     sorted(df["Year"].unique()),
     default=sorted(df["Year"].unique())
 )
 
-selected_states = st.sidebar.multiselect(
+states = st.sidebar.multiselect(
     "Select State",
-    sorted(df["State"].unique()),
-    default=sorted(df["State"].unique())
+    sorted(df["State Name"].unique()),
+    default=sorted(df["State Name"].unique())
 )
 
-filtered_df = df[
-    (df["Year"].isin(selected_years)) &
-    (df["State"].isin(selected_states))
+filtered = df[
+    (df["Year"].isin(years)) &
+    (df["State Name"].isin(states))
 ]
 
 # -----------------------------
