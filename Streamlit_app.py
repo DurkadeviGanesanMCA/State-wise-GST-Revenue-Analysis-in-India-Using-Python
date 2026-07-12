@@ -24,22 +24,7 @@ def load_data():
 
 df = load_data()
 
-# Sidebar Filters
-st.sidebar.header("Filters")
 
-# 1. Get unique values
-unique_years = sorted(df["Year"].unique())
-unique_states = sorted(df["State Name"].unique())
-
-# 2. Render multi-select widgets
-years = st.sidebar.multiselect("Select Year", unique_years, default=unique_years)
-states = st.sidebar.multiselect("Select State", unique_states, default=unique_states)
-
-# 3. Robust Filtering Logic (Handles empty selections gracefully)
-filtered = df[
-    (df["Year"].isin(years if years else unique_years)) & 
-    (df["State Name"].isin(states if states else unique_states))
-]
 # -----------------------------
 # Title
 # -----------------------------
