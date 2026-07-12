@@ -13,7 +13,7 @@ st.set_page_config(
 # -----------------------------
 @st.cache_data
 def load_data():
-    df = pd.read_csv("sales.csv")
+    df = pd.read_csv("cleaned_data.csv")
 
     df["Date"] = pd.to_datetime(df["Date"], dayfirst=True)
     df["Year"] = df["Date"].dt.year
