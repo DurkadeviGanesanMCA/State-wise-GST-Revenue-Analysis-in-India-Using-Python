@@ -1,7 +1,11 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 
+# ==========================================
+# ******************** Page Configuration ***********************
+# ==========================================
 st.set_page_config(
     page_title="GST Collection Dashboard",
     page_icon="📊",
@@ -25,224 +29,263 @@ def load_data():
 df = load_data()
 
 
-# -----------------------------
-# Title
-# -----------------------------
+st.title("📊 GST Collection Dashboard")
+st.markdown("Interactive analysis of GST collections across States and Union Territories.")
 
-st.title("GST Revenue Analysis Dashboard")
+# ==========================================
+# Sidebar Filters
+# ==========================================
+st.sidebar.header("Filters")
 
-st.markdown("---")
+year = st.sidebar.multiselect(
+    "Select Year",
+    sorted(df["Year"].unique()),
+    default=sorted(df["Year"].unique())
+)
 
-# -----------------------------
-# KPI Cards
-# -----------------------------
+state = st.sidebar.multiselect(
+    "Select State",
+    sorted(df["State"].unique()),
+    default=sorted(df["State"].unique())
+)
 
-total_collection = filtered["Total_GST"].sum()
+filtered_df = df[
+    (df["Year"].isin(year)) &
+    (df["State"].isin(state))
+]
 
-cgst = filtered["CGST"].sum()
+# ==========================================
+# KPI Metrics
+# ==========================================
 
-sgst = filtered["SGST"].sum()
+total_gst = filtered_df["Total_GST"].sum()
+avg_gst = filtered_df["Total_GST"].mean()
 
-igst = filtered["IGST"].sum()
+top_state = (
+    filtered_df.groupby("State")["Total_GST"]
+    .sum()
+    .idxmax()
+)
 
-cess = filtered["CESS"].sum()
+bottom_state = (
+    filtered_df.groupby("State")["Total_GST"]
+    .sum()
+    .idxmin()
+)
 
-c1,c2,c3,c4,c5 = st.columns(5)
+c1, c2, c3, c4 = st.columns(4)
 
-c1.metric("Total GST", f"₹ {total_collection:,.0f}")
-c2.metric("CGST", f"₹ {cgst:,.0f}")
-c3.metric("SGST", f"₹ {sgst:,.0f}")
-c4.metric("IGST", f"₹ {igst:,.0f}")
-c5.metric("CESS", f"₹ {cess:,.0f}")
+c1.metric("Total GST", f"₹ {total_gst:,.0f}")
+c2.metric("Average GST", f"₹ {avg_gst:,.0f}")
+c3.metric("Top State", top_state)
+c4.metric("Bottom State", bottom_state)
 
-st.markdown("---")
+# ==========================================
+# Total GST Trend
+# ==========================================
 
-# =============================
-# Monthly Trend
-# =============================
+st.subheader("Total GST Trend")
 
-monthly = filtered.groupby("Date")["Total_GST"].sum().reset_index()
+trend = filtered_df.groupby("Date")["Total_GST"].sum().reset_index()
 
 fig = px.line(
-    monthly,
+    trend,
     x="Date",
     y="Total_GST",
-    title="Monthly GST Collection Trend",
+    markers=True,
+    title="GST Collection Over Time"
+)
+
+st.plotly_chart(fig, use_container_width=True)
+
+# ==========================================
+# State-wise GST Collection
+# ==========================================
+
+st.subheader("State-wise GST Collection")
+
+state_data = (
+    filtered_df.groupby("State")["Total_GST"]
+    .sum()
+    .sort_values(ascending=False)
+    .reset_index()
+)
+
+fig = px.bar(
+    state_data,
+    x="State",
+    y="Total_GST",
+    color="Total_GST"
+)
+
+st.plotly_chart(fig, use_container_width=True)
+
+# ==========================================
+# GST Component Contribution
+# ==========================================
+
+st.subheader("GST Component Contribution")
+
+components = filtered_df[
+    ["CGST","SGST","IGST","Cess"]
+].sum()
+
+fig = px.pie(
+    names=components.index,
+    values=components.values,
+    hole=0.4
+)
+
+st.plotly_chart(fig, use_container_width=True)
+
+# ==========================================
+# Top & Bottom Revenue States
+# ==========================================
+
+col1, col2 = st.columns(2)
+
+with col1:
+
+    st.subheader("Top 10 States")
+
+    top10 = state_data.head(10)
+
+    fig = px.bar(
+        top10,
+        x="Total_GST",
+        y="State",
+        orientation="h"
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
+
+with col2:
+
+    st.subheader("Bottom 10 States")
+
+    bottom10 = state_data.tail(10)
+
+    fig = px.bar(
+        bottom10,
+        x="Total_GST",
+        y="State",
+        orientation="h"
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
+
+# ==========================================
+# Year-over-Year Growth
+# ==========================================
+
+st.subheader("Year-over-Year Growth")
+
+yoy = filtered_df.groupby("Year")["Total_GST"].sum().reset_index()
+
+yoy["YoY Growth %"] = yoy["Total_GST"].pct_change()*100
+
+fig = px.bar(
+    yoy,
+    x="Year",
+    y="YoY Growth %"
+)
+
+st.plotly_chart(fig, use_container_width=True)
+
+# ==========================================
+# Month-over-Month Growth
+# ==========================================
+
+st.subheader("Month-over-Month Growth")
+
+mom = trend.copy()
+
+mom["MoM Growth %"] = mom["Total_GST"].pct_change()*100
+
+fig = px.line(
+    mom,
+    x="Date",
+    y="MoM Growth %",
     markers=True
 )
 
 st.plotly_chart(fig, use_container_width=True)
 
-# =============================
-# State Comparison
-# =============================
+# ==========================================
+# Seasonal Analysis
+# ==========================================
 
-state = filtered.groupby("State Name")["Total_GST"].sum().reset_index()
+st.subheader("Seasonal Analysis")
 
-state = state.sort_values("Total_GST", ascending=False)
+season = (
+    filtered_df.groupby("Month")["Total_GST"]
+    .mean()
+    .reset_index()
+)
 
 fig = px.bar(
-    state,
-    x="State Name",
-    y="Total_GST",
-    title="GST Collection by State"
-)
-
-st.plotly_chart(fig, use_container_width=True)
-
-# =============================
-# GST Components
-# =============================
-
-component = pd.DataFrame({
-    "Component":["CGST","SGST","IGST","CESS"],
-    "Revenue":[cgst,sgst,igst,cess]
-})
-
-fig = px.pie(
-    component,
-    names="Component",
-    values="Revenue",
-    title="GST Component Contribution"
-)
-
-st.plotly_chart(fig, use_container_width=True)
-
-# =============================
-# Top & Bottom States
-# =============================
-
-left,right = st.columns(2)
-
-top = state.head(10)
-
-bottom = state.tail(10)
-
-fig = px.bar(
-    top,
-    x="Total_GST",
-    y="State Name",
-    orientation="h",
-    title="Top 10 Revenue States"
-)
-
-left.plotly_chart(fig, use_container_width=True)
-
-fig = px.bar(
-    bottom,
-    x="Total_GST",
-    y="State Name",
-    orientation="h",
-    title="Bottom 10 Revenue States"
-)
-
-right.plotly_chart(fig, use_container_width=True)
-
-# =============================
-# YoY Growth
-# =============================
-
-yearly = filtered.groupby("Year")["Total_GST"].sum().reset_index()
-
-yearly["YoY %"] = yearly["Total_GST"].pct_change()*100
-
-fig = px.bar(
-    yearly,
-    x="Year",
-    y="YoY %",
-    text_auto=".2f",
-    title="Year over Year Growth (%)"
-)
-
-st.plotly_chart(fig, use_container_width=True)
-
-# =============================
-# Month over Month Growth
-# =============================
-
-mom = filtered.groupby("Date")["Total_GST"].sum().reset_index()
-
-mom["MoM %"] = mom["Total_GST"].pct_change()*100
-
-fig = px.line(
-    mom,
-    x="Date",
-    y="MoM %",
-    markers=True,
-    title="Month over Month Growth (%)"
-)
-
-st.plotly_chart(fig, use_container_width=True)
-
-# =============================
-# Seasonal Pattern
-# =============================
-
-season = filtered.groupby("Month_Name")["Total_GST"].sum().reset_index()
-
-months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
-
-season["Month_Name"] = pd.Categorical(
-    season["Month_Name"],
-    categories=months,
-    ordered=True
-)
-
-season = season.sort_values("Month_Name")
-
-fig = px.line(
     season,
-    x="Month_Name",
-    y="Total_GST",
-    markers=True,
-    title="Seasonal Pattern"
+    x="Month",
+    y="Total_GST"
 )
 
 st.plotly_chart(fig, use_container_width=True)
 
-# =============================
-# Heatmap (Year x Month)
-# =============================
-
-pivot = filtered.pivot_table(
-    values="Total_GST",
-    index="Year",
-    columns="Month_Num",
-    aggfunc="sum"
-)
-
-fig = px.imshow(
-    pivot,
-    text_auto=True,
-    aspect="auto",
-    title="GST Collection Heatmap"
-)
-
-st.plotly_chart(fig, use_container_width=True)
-
-# =============================
+# ==========================================
 # Anomaly Detection
-# =============================
+# ==========================================
 
-monthly = filtered.groupby("Date")["Total_GST"].sum().reset_index()
+st.subheader("Anomaly Detection")
 
-mean = monthly["Total_GST"].mean()
-std = monthly["Total_GST"].std()
+mean = trend["Total_GST"].mean()
+std = trend["Total_GST"].std()
 
-monthly["Anomaly"] = (
-    (monthly["Total_GST"] > mean + 2*std) |
-    (monthly["Total_GST"] < mean - 2*std)
+trend["Anomaly"] = (
+    abs(trend["Total_GST"] - mean) > 2 * std
 )
 
-fig = px.scatter(
-    monthly,
-    x="Date",
-    y="Total_GST",
-    color="Anomaly",
-    title="GST Collection Anomaly Detection"
+fig = go.Figure()
+
+fig.add_trace(
+    go.Scatter(
+        x=trend["Date"],
+        y=trend["Total_GST"],
+        mode="lines+markers",
+        name="GST"
+    )
+)
+
+fig.add_trace(
+    go.Scatter(
+        x=trend[trend["Anomaly"]]["Date"],
+        y=trend[trend["Anomaly"]]["Total_GST"],
+        mode="markers",
+        marker=dict(color="red", size=10),
+        name="Anomaly"
+    )
 )
 
 st.plotly_chart(fig, use_container_width=True)
+
+# ==========================================
+# Forecasting (Optional)
+# ==========================================
+
+st.subheader("Forecasting")
+
+st.info("Forecasting section can be implemented using Prophet, ARIMA, or another time-series model.")
+
+# ==========================================
+# Interactive Data Table
+# ==========================================
+
+st.subheader("GST Data")
+
+st.dataframe(filtered_df, use_container_width=True)
+
+# ==========================================
+# Footer
+# ==========================================
 
 st.markdown("---")
-st.caption("GST Revenue Dashboard | Streamlit + Plotly")
+st.caption("GST Collection Dashboard | Developed using Streamlit & Plotly")
