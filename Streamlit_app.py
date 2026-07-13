@@ -67,14 +67,25 @@ filtered_df = df[
 # KPI Metrics
 
 if not filtered_df.empty:
-    total_gst = filtered_df["Total_GST"].sum()
-    avg_gst = filtered_df["Total_GST"].mean()
-    top_state = filtered_df.groupby("State Name")["Total_GST"].sum().idxmax()
-    bottom_state = filtered_df.groupby("State Name")["Total_GST"].sum().idxmin()
+    # 1. Calculate values in Crores from the dataframe
+    total_gst_crores = filtered_df["Total_GST"].sum()
+    avg_gst_crores = filtered_df["Total_GST"].mean()
+    
+    # 2. Convert Crores to Millions (1 Crore = 10 Millions)
+    total_gst_millions = total_gst_crores * 10
+    avg_gst_millions = avg_gst_crores * 10
+    
+    # Find top and bottom states
+    state_totals = filtered_df.groupby("State Name")["Total_GST"].sum()
+    top_state = state_totals.idxmax()
+    bottom_state = state_totals.idxmin()
 
+    # Layout Columns
     c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Total GST", f"₹ {total_gst:,.2f} Cr")
-    c2.metric("Average GST", f"₹ {avg_gst:,.2f} Cr")
+    
+    # 3. Display rounded whole numbers formatted in Millions (M)
+    c1.metric("Total GST", f"₹ {total_gst_millions:,.0f} M")
+    c2.metric("Average GST", f"₹ {avg_gst_millions:,.0f} M")
     c3.metric("Top State", top_state)
     c4.metric("Bottom State", bottom_state)
 else:
