@@ -20,6 +20,8 @@ def load_data():
     # Reads the dataset and correctly parses the 'Date' column
     df = pd.read_csv("cleaned_data.csv")
     df["Date"] = pd.to_datetime(df["Date"], dayfirst=True)
+      df["Month_Name"] = df["Date"].dt.strftime("%b")
+    df["Month_Num"] = df["Date"].dt.month
     
     # Overwrites the raw placeholders to create clean sorting/filtering keys
     df["Year"] = df["Date"].dt.year
@@ -32,7 +34,7 @@ except FileNotFoundError:
     st.error("Please ensure your dataset is named 'cleaned_data.csv' and placed in the same directory.")
     st.stop()
 
-st.title("📊 GST Collection Dashboard")
+st.title("📊 GST TAX Collection Dashboard")
 st.markdown("Interactive analysis of GST collections across States and Union Territories.")
 
 
@@ -242,6 +244,6 @@ else:
 # Interactive Data Table
 # ==========================================
 st.subheader("Raw Aggregated Data Matrix")
-st.dataframe(filtered_df, use_container_width=False)
+st.dataframe(filtered_df, use_container_width=True)
 
 
