@@ -7,7 +7,7 @@ import plotly.graph_objects as go
 # ******************** Page Configuration ***********************
 # ==========================================
 st.set_page_config(
-    page_title="GST Collection Dashboard",
+    page_title="GST Tax Collection Dashboard",
     page_icon="📊",
     layout="wide"
 )
@@ -81,9 +81,8 @@ else:
     st.warning("No records match current filtering parameters.")
     st.stop()
 
-# ==========================================
 # Total GST Trend
-# ==========================================
+
 st.subheader("Total GST Trend")
 trend = filtered_df.groupby("Date")["Total_GST"].sum().reset_index()
 fig = px.line(
@@ -95,9 +94,9 @@ fig = px.line(
 )
 st.plotly_chart(fig, use_container_width=True)
 
-# ==========================================
+
 # State-wise GST Collection
-# ==========================================
+
 st.subheader("State-wise GST Collection")
 state_data = (
     filtered_df.groupby("State Name")["Total_GST"]
@@ -114,9 +113,9 @@ fig = px.bar(
 )
 st.plotly_chart(fig, use_container_width=True)
 
-# ==========================================
+
 # GST Component Contribution
-# ==========================================
+
 st.subheader("GST Component Contribution")
 # Columns synchronized directly with uppercase CESS flag
 components = filtered_df[["CGST", "SGST", "IGST", "CESS"]].sum()
@@ -128,9 +127,9 @@ fig = px.pie(
 )
 st.plotly_chart(fig, use_container_width=True)
 
-# ==========================================
+
 # Top & Bottom Revenue States
-# ==========================================
+
 col1, col2 = st.columns(2)
 with col1:
     st.subheader("Top 10 States")
@@ -156,9 +155,9 @@ with col2:
     )
     st.plotly_chart(fig, use_container_width=True)
 
-# ==========================================
+
 # Year-over-Year Growth
-# ==========================================
+
 st.subheader("Year-over-Year Growth")
 yoy = filtered_df.groupby("Year")["Total_GST"].sum().reset_index()
 yoy["YoY Growth %"] = yoy["Total_GST"].pct_change() * 100
@@ -170,9 +169,9 @@ fig = px.bar(
 )
 st.plotly_chart(fig, use_container_width=True)
 
-# ==========================================
+
 # Month-over-Month Growth
-# ==========================================
+
 st.subheader("Month-over-Month Growth")
 mom = trend.copy()
 mom["MoM Growth %"] = mom["Total_GST"].pct_change() * 100
@@ -185,9 +184,8 @@ fig = px.line(
 )
 st.plotly_chart(fig, use_container_width=True)
 
-# ==========================================
 # Seasonal Analysis
-# ==========================================
+
 st.subheader("Seasonal Analysis")
 # Grouping via calculated values avoids errors from raw datetime parameters
 season = (
@@ -204,9 +202,9 @@ fig = px.bar(
 )
 st.plotly_chart(fig, use_container_width=True)
 
-# ==========================================
+
 # Anomaly Detection
-# ==========================================
+
 st.subheader("Anomalies & Deviations")
 if len(trend) > 1:
     mean_val = trend["Total_GST"].mean()
@@ -240,20 +238,12 @@ if len(trend) > 1:
 else:
     st.info("Insufficient longitudinal data points to generate threshold deviation bounds.")
 
-# ==========================================
-# Forecasting (Optional)
-# ==========================================
-st.subheader("Predictive Modeling Outlook")
-st.info("Forecasting section can be implemented using Prophet, ARIMA, or another time-series model.")
+
 
 # ==========================================
 # Interactive Data Table
 # ==========================================
 st.subheader("Raw Aggregated Data Matrix")
-st.dataframe(filtered_df, use_container_width=True)
+st.dataframe(filtered_df, use_container_width=False)
 
-# ==========================================
-# Footer
-# ==========================================
-st.markdown("---")
-st.caption("GST Collection Dashboard | Developed using Streamlit & Plotly")
+
