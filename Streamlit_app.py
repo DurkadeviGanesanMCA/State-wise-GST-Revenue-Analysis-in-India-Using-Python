@@ -20,7 +20,7 @@ def load_data():
     # Reads the dataset and correctly parses the 'Date' column
     df = pd.read_csv("cleaned_data.csv")
     df["Date"] = pd.to_datetime(df["Date"], dayfirst=True)
-      df["Month_Name"] = df["Date"].dt.strftime("%b")
+    df["Month_Name"] = df["Date"].dt.strftime("%b")
     df["Month_Num"] = df["Date"].dt.month
     
     # Overwrites the raw placeholders to create clean sorting/filtering keys
