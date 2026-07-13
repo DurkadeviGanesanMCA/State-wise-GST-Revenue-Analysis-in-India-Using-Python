@@ -3,9 +3,9 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
-# ==========================================
+
 # ******************** Page Configuration ***********************
-# ==========================================
+
 st.set_page_config(
     page_title="GST Tax Collection Dashboard",
     page_icon="📊",
@@ -23,8 +23,7 @@ def load_data():
     
     # Overwrites the raw placeholders to create clean sorting/filtering keys
     df["Year"] = df["Date"].dt.year
-    df["Month_Name"] = df["Date"].dt.strftime("%b")
-    df["Month_Num"] = df["Date"].dt.month
+ 
     return df
 
 try:
@@ -36,9 +35,9 @@ except FileNotFoundError:
 st.title("📊 GST Collection Dashboard")
 st.markdown("Interactive analysis of GST collections across States and Union Territories.")
 
-# ==========================================
+
 # Sidebar Filters
-# ==========================================
+
 st.sidebar.header("Filters")
 
 # Extract unique configuration values
@@ -63,9 +62,8 @@ filtered_df = df[
     (df["State Name"].isin(state if state else unique_states))
 ]
 
-# ==========================================
 # KPI Metrics
-# ==========================================
+
 if not filtered_df.empty:
     total_gst = filtered_df["Total_GST"].sum()
     avg_gst = filtered_df["Total_GST"].mean()
@@ -156,7 +154,7 @@ with col2:
     st.plotly_chart(fig, use_container_width=True)
 
 
-# Year-over-Year Growth
+#  Year-over-Year Growth
 
 st.subheader("Year-over-Year Growth")
 yoy = filtered_df.groupby("Year")["Total_GST"].sum().reset_index()
