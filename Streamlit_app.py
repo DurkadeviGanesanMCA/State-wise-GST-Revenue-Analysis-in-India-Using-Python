@@ -1,66 +1,260 @@
 import streamlit as st
 import pandas as pd
-from utils import load_and_filter_data, calculate_kpis, process_advanced_analytics
-import charts
+import plotly.express as px
+import plotly.graph_objects as go
 
-st.set_page_config(page_title="GST Collection Dashboard", layout="wide")
 
-# Read layout constraints from style sheet
+# ******************** Page Configuration ***********************
+
+st.set_page_config(
+    page_title="GST Tax Collection Dashboard",
+    page_icon="📊",
+    layout="wide"
+)
+
+# -----------------------------
+# Load Data
+# -----------------------------
+@st.cache_data
+def load_data():
+    # Reads the dataset and correctly parses the 'Date' column
+    df = pd.read_csv("cleaned_data.csv")
+    df["Date"] = pd.to_datetime(df["Date"], dayfirst=True)
+    df["Month_Name"] = df["Date"].dt.strftime("%b")
+    df["Month_Num"] = df["Date"].dt.month
+
+    
+    # Overwrites the raw placeholders to create clean sorting/filtering keys
+    df["Year"] = df["Date"].dt.year
+ 
+    return df
+
 try:
-    with open("style.css") as f:
-        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+    df = load_data()
 except FileNotFoundError:
-    pass
+    st.error("Please ensure your dataset is named 'cleaned_data.csv' and placed in the same directory.")
+    st.stop()
 
-DATA_FILE = "gst_data.csv"
-raw_df = pd.read_csv(DATA_FILE)
+st.title("📊 GST TAX Collection Dashboard")
+st.markdown("Interactive analysis of GST collections across States and Union Territories.")
 
-# Sidebar Filter Implementation
-st.sidebar.title("Filters")
-available_years = sorted(list(raw_df['Year'].unique()))
-selected_years = st.sidebar.multiselect("Select Year", available_years, default=available_years)
 
-available_states = ["All"] + sorted(list(raw_df['State'].unique()))
-selected_states = st.sidebar.selectbox("Select State", available_states, index=0)
+# Sidebar Filters
 
-# Load data frameworks via processing pipelines
-filtered_df = load_and_filter_data(DATA_FILE, selected_years, [selected_states] if selected_states != "All" else None)
-metrics = calculate_kpis(filtered_df)
-timeline_df, yoy_df, seasonal_df = process_advanced_analytics(filtered_df)
+st.sidebar.header("Filters")
 
-# Main Title Headers
-st.title("📊 GST Collection Dashboard")
-st.caption("Interactive analytical matrix for tracked GST workflows and revenue trends.")
+# Extract unique configuration values
+unique_years = sorted(df["Year"].unique())
+unique_states = sorted(df["State Name"].unique())
 
-# --- Row 1: Objective KPI Callouts ---
-kpi_col1, kpi_col2, kpi_col3, kpi_col4 = st.columns(4)
-with kpi_col1:
-    st.markdown(f'<div class="metric-card"><div><p class="metric-title">Total GST Collection</p><p class="metric-value">₹ {metrics["total_gst"]:,} Cr</p></div><span>🔵</span></div>', unsafe_allow_html=True)
-with kpi_col2:
-    st.markdown(f'<div class="metric-card"><div><p class="metric-title">Systemic Average Collection</p><p class="metric-value">₹ {int(metrics["avg_gst"]):,} Cr</p></div><span>📈</span></div>', unsafe_allow_html=True)
-with kpi_col3:
-    st.markdown(f'<div class="metric-card"><div><p class="metric-title">Top Performer ({metrics["top_state"]})</p><p class="metric-value">₹ {metrics["top_val"]:,} Cr</p></div><span>🏆</span></div>', unsafe_allow_html=True)
-with kpi_col4:
-    st.markdown(f'<div class="metric-card"><div><p class="metric-title">Bottom Performer ({metrics["bottom_state"]})</p><p class="metric-value">₹ {metrics["bottom_val"]:,} Cr</p></div><span>🚨</span></div>', unsafe_allow_html=True)
+# Setup multiselect values with safe fallbacks
+year = st.sidebar.multiselect(
+    "Select Year", 
+    unique_years, 
+    default=unique_years
+)
+state = st.sidebar.multiselect(
+    "Select State", 
+    unique_states, 
+    default=unique_states
+)
 
-# --- Row 2: Basic Trends ---
-r2_1, r2_2 = st.columns(2)
-r2_1.plotly_chart(charts.draw_total_gst_trend(timeline_df), use_container_width=True)
-r2_2.plotly_chart(charts.draw_state_wise_collection(filtered_df), use_container_width=True)
+# Robust bitwise logic matching fallback filters if empty lists are passed
+filtered_df = df[
+    (df["Year"].isin(year if year else unique_years)) & 
+    (df["State Name"].isin(state if state else unique_states))
+]
 
-# --- Row 3: Component Shares and Leaderboards ---
-r3_1, r3_2, r3_3 = st.columns([1, 1.2, 1.2])
-r3_1.plotly_chart(charts.draw_component_donut(filtered_df), use_container_width=True)
-r3_2.plotly_chart(charts.draw_top_states_bar(filtered_df), use_container_width=True)
-r3_3.plotly_chart(charts.draw_bottom_states_bar(filtered_df), use_container_width=True)
+# KPI Metrics
 
-# --- Row 4: Advanced Predictive & Growth Metrics ---
-r4_1, r4_2, r4_3, r4_4 = st.columns(4)
-r4_1.plotly_chart(charts.draw_yoy_growth(yoy_df), use_container_width=True)
-r4_2.plotly_chart(charts.draw_mom_growth(timeline_df), use_container_width=True)
-r4_3.plotly_chart(charts.draw_seasonal_analysis(seasonal_df), use_container_width=True)
-r4_4.plotly_chart(charts.draw_anomaly_detection(timeline_df), use_container_width=True)
+if not filtered_df.empty:
+    # 1. Calculate values in Crores from the dataframe
+    total_gst_crores = filtered_df["Total_GST"].sum()
+    avg_gst_crores = filtered_df["Total_GST"].mean()
+    
+    # 2. Convert Crores to Millions (1 Crore = 10 Millions)
+    total_gst_millions = total_gst_crores * 10
+    avg_gst_millions = avg_gst_crores * 10
+    
+    # Find top and bottom states
+    state_totals = filtered_df.groupby("State Name")["Total_GST"].sum()
+    top_state = state_totals.idxmax()
+    bottom_state = state_totals.idxmin()
 
-# --- Row 5: Tabular Data Source Verification ---
-st.subheader("Audited GST Ledger Framework")
-st.dataframe(filtered_df.drop(columns=['Month_Num'], errors='ignore'), use_container_width=True, hide_index=True)
+    # Layout Columns
+    c1, c2, c3, c4 = st.columns(4)
+    
+    # 3. Display rounded whole numbers formatted in Millions (M)
+    c1.metric("Total GST", f"₹ {total_gst_millions:,.0f} M")
+    c2.metric("Average GST", f"₹ {avg_gst_millions:,.0f} M")
+    c3.metric("Top State", top_state)
+    c4.metric("Bottom State", bottom_state)
+else:
+    st.warning("No records match current filtering parameters.")
+    st.stop()
+
+# Total GST Trend
+
+st.subheader("Total GST Trend")
+trend = filtered_df.groupby("Date")["Total_GST"].sum().reset_index()
+fig = px.line(
+    trend, 
+    x="Date", 
+    y="Total_GST", 
+    markers=True, 
+    title="GST Collection Over Time"
+)
+st.plotly_chart(fig, use_container_width=True)
+
+
+# State-wise GST Collection
+
+st.subheader("State-wise GST Collection")
+state_data = (
+    filtered_df.groupby("State Name")["Total_GST"]
+    .sum()
+    .sort_values(ascending=False)
+    .reset_index()
+)
+fig = px.bar(
+    state_data, 
+    x="State Name", 
+    y="Total_GST", 
+    color="Total_GST",
+    title="Cumulative Collection by Region"
+)
+st.plotly_chart(fig, use_container_width=True)
+
+
+# GST Component Contribution
+
+st.subheader("GST Component Contribution")
+# Columns synchronized directly with uppercase CESS flag
+components = filtered_df[["CGST", "SGST", "IGST", "CESS"]].sum()
+fig = px.pie(
+    names=components.index, 
+    values=components.values, 
+    hole=0.4,
+    title="Distribution of Collection Components"
+)
+st.plotly_chart(fig, use_container_width=True)
+
+
+# Top & Bottom Revenue States
+
+col1, col2 = st.columns(2)
+with col1:
+    st.subheader("Top 10 States")
+    top10 = state_data.head(10)
+    fig = px.bar(
+        top10, 
+        x="Total_GST", 
+        y="State Name", 
+        orientation="h",
+        category_orders={"State Name": top10["State Name"].tolist()[::-1]}
+    )
+    st.plotly_chart(fig, use_container_width=True)
+
+with col2:
+    st.subheader("Bottom 10 States")
+    bottom10 = state_data.tail(10)
+    fig = px.bar(
+        bottom10, 
+        x="Total_GST", 
+        y="State Name", 
+        orientation="h",
+        category_orders={"State Name": bottom10["State Name"].tolist()[::-1]}
+    )
+    st.plotly_chart(fig, use_container_width=True)
+
+
+#  Year-over-Year Growth
+
+st.subheader("Year-over-Year Growth")
+yoy = filtered_df.groupby("Year")["Total_GST"].sum().reset_index()
+yoy["YoY Growth %"] = yoy["Total_GST"].pct_change() * 100
+fig = px.bar(
+    yoy, 
+    x="Year", 
+    y="YoY Growth %",
+    title="Annual Relative Performance Percentage"
+)
+st.plotly_chart(fig, use_container_width=True)
+
+
+# Month-over-Month Growth
+
+st.subheader("Month-over-Month Growth")
+mom = trend.copy()
+mom["MoM Growth %"] = mom["Total_GST"].pct_change() * 100
+fig = px.line(
+    mom, 
+    x="Date", 
+    y="MoM Growth %", 
+    markers=True,
+    title="Sequential Performance Progression Delta"
+)
+st.plotly_chart(fig, use_container_width=True)
+
+# Seasonal Analysis
+
+st.subheader("Seasonal Analysis")
+# Grouping via calculated values avoids errors from raw datetime parameters
+season = (
+    filtered_df.groupby(["Month_Num", "Month_Name"])["Total_GST"]
+    .mean()
+    .reset_index()
+    .sort_values("Month_Num")
+)
+fig = px.bar(
+    season, 
+    x="Month_Name", 
+    y="Total_GST",
+    title="Average Monthly Performance Across Years"
+)
+st.plotly_chart(fig, use_container_width=True)
+
+
+# Anomaly Detection
+
+st.subheader("Anomalies & Deviations")
+if len(trend) > 1:
+    mean_val = trend["Total_GST"].mean()
+    std_val = trend["Total_GST"].std()
+    
+    # Check if calculation is viable (avoids division by zero/NaN triggers)
+    std_val = std_val if std_val > 0 else 1.0
+    trend["Anomaly"] = (abs(trend["Total_GST"] - mean_val) > 2 * std_val)
+    
+    fig = go.Figure()
+    fig.add_trace(
+        go.Scatter(
+            x=trend["Date"], 
+            y=trend["Total_GST"], 
+            mode="lines+markers", 
+            name="Normal Stream"
+        )
+    )
+    anomalies = trend[trend["Anomaly"]]
+    fig.add_trace(
+        go.Scatter(
+            x=anomalies["Date"], 
+            y=anomalies["Total_GST"], 
+            mode="markers", 
+            marker=dict(color="crimson", size=11, symbol="x"), 
+            name="Outlier Alert (>2σ)"
+        )
+    )
+    fig.update_layout(title="Statistical Revenue Outliers")
+    st.plotly_chart(fig, use_container_width=True)
+else:
+    st.info("Insufficient longitudinal data points to generate threshold deviation bounds.")
+
+
+
+# ==========================================
+# Interactive Data Table
+# ==========================================
+st.subheader("Raw Aggregated Data Matrix")
+st.dataframe(filtered_df, use_container_width=True)
+
