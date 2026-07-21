@@ -105,7 +105,12 @@ def draw_seasonal_analysis(df):
     )
 
     fig.update_traces(marker_color='#ea580c')
-
+    
+     fig.update_yaxes(
+        title_text='Total GST (₹ Crore)',
+        tickformat='.1f',
+        ticksuffix=' Cr'
+    )
     fig.update_layout(
         plot_bgcolor='white',
         margin=dict(l=20, r=20, t=40, b=20),
