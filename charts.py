@@ -113,13 +113,6 @@ def draw_seasonal_analysis(df):
         title='Month'
     )
 
-    # GST is already in Crores
-    fig.update_yaxes(
-        title='Total GST (₹ Crore)',
-        tickformat=',.1f',
-        ticksuffix=' Cr'
-    )
-
     fig.update_layout(
         plot_bgcolor='white',
         margin=dict(l=20, r=20, t=40, b=20),
