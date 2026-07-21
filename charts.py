@@ -60,6 +60,75 @@ def draw_mom_growth(df):
     fig.update_layout(plot_bgcolor='white', margin=dict(l=20, r=20, t=40, b=20), height=250)
     return fig
 
+def draw_seasonal_analysis(df):
+    months_order = [
+        '01', '02', '03', '04', '05', '06',
+        '07', '08', '09', '10', '11', '12'
+    ]
+
+    data = df.copy()
+
+    # Clean Month
+    data['Month'] = (
+        data['Month']
+        .astype(str)
+        .str.strip()
+        .str.zfill(2)
+    )
+
+    # Calculate average GST for each month
+    seasonal = (
+        data.groupby('Month', as_index=False)['Total_GST']
+        .mean()
+    )
+
+    # Sort months correctly
+    seasonal['Month'] = pd.Categorical(
+        seasonal['Month'],
+        categories=months_order,
+        ordered=True
+    )
+
+    seasonal = seasonal.sort_values('Month')
+
+    # Convert Month back to string
+    seasonal['Month'] = seasonal['Month'].astype(str)
+
+    # Create chart
+    fig = px.bar(
+        seasonal,
+        x='Month',
+        y='Total_GST',
+        title='Seasonal Analysis (Average by Month)',
+        category_orders={'Month': months_order}
+    )
+
+    # Bar color
+    fig.update_traces(
+        marker_color='#ea580c'
+    )
+
+    # X-axis
+    fig.update_xaxes(
+        type='category',
+        title='Month'
+    )
+
+    # Y-axis
+    fig.update_yaxes(
+        title='Average Total GST (₹ Crore)',
+        range=[0, 4000],
+        tickformat=',.0f'
+    )
+
+    fig.update_layout(
+        plot_bgcolor='white',
+        margin=dict(l=20, r=20, t=50, b=20),
+        height=350
+    )
+
+    return fig
+
 def draw_anomaly_detection(df):
     trend = df.groupby('Date')['Total_GST'].sum().reset_index()
     fig = px.line(trend, x='Date', y='Total_GST', title="Anomaly Detection")
