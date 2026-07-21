@@ -61,21 +61,30 @@ def draw_mom_growth(df):
     return fig
 
 def draw_seasonal_analysis(df):
-    months_order = [
-        '01', '02', '03', '04', '05', '06','07', '08', '09', '10', '11', '12'
-    ]
+    # Make a copy
+    data = df.copy()
 
-    # Clean Month values
-    df = df.copy()
-    df['Month'] = df['Month'].astype(str).str.strip().str.zfill(2)
+    # Clean Month column
+    data['Month'] = (
+        data['Month']
+        .astype(str)
+        .str.strip()
+        .str.zfill(2)
+    )
 
-    # Calculate average GST
+    # Calculate average GST by month
     seasonal = (
-        df.groupby('Month', as_index=False)['Total_GST']
+        data.groupby('Month', as_index=False)['Total_GST']
         .mean()
     )
 
-    # Set correct month order
+    # Explicit month order
+    months_order = [
+        '01', '02', '03', '04', '05', '06',
+        '07', '08', '09', '10', '11', '12'
+    ]
+
+    # Sort according to month order
     seasonal['Month'] = pd.Categorical(
         seasonal['Month'],
         categories=months_order,
@@ -84,11 +93,15 @@ def draw_seasonal_analysis(df):
 
     seasonal = seasonal.sort_values('Month')
 
+    # Convert back to string for Plotly
+    seasonal['Month'] = seasonal['Month'].astype(str)
+
     fig = px.bar(
         seasonal,
         x='Month',
         y='Total_GST',
-        title='Seasonal Analysis (Average by Month)'
+        title='Seasonal Analysis (Average by Month)',
+        category_orders={'Month': months_order}
     )
 
     fig.update_traces(marker_color='#ea580c')
