@@ -68,7 +68,7 @@ def draw_seasonal_analysis(df):
 
     data = df.copy()
 
-    # Clean Month
+    # Clean Month column
     data['Month'] = (
         data['Month']
         .astype(str)
@@ -76,45 +76,41 @@ def draw_seasonal_analysis(df):
         .str.zfill(2)
     )
 
-    # Calculate average GST for each month
+    # Calculate monthly average
     seasonal = (
-        data.groupby('Month', as_index=False)['Total_GST']
+        data.groupby('Month')['Total_GST']
         .mean()
+        .reindex(months_order)
     )
 
-    # Sort months correctly
-    seasonal['Month'] = pd.Categorical(
-        seasonal['Month'],
-        categories=months_order,
-        ordered=True
-    )
+    # Convert Series to DataFrame
+    seasonal = seasonal.reset_index()
 
-    seasonal = seasonal.sort_values('Month')
+    # Rename columns explicitly
+    seasonal.columns = ['Month', 'Average_GST']
 
-    # Convert Month back to string
-    seasonal['Month'] = seasonal['Month'].astype(str)
+    print(seasonal)
 
     # Create chart
     fig = px.bar(
         seasonal,
         x='Month',
-        y='Total_GST',
+        y='Average_GST',
         title='Seasonal Analysis (Average by Month)',
-        category_orders={'Month': months_order}
+        category_orders={
+            'Month': months_order
+        }
     )
 
-    # Bar color
     fig.update_traces(
         marker_color='#ea580c'
     )
 
-    # X-axis
     fig.update_xaxes(
         type='category',
         title='Month'
     )
 
-    # Y-axis
     fig.update_yaxes(
         title='Average Total GST (₹ Crore)',
         range=[0, 4000],
@@ -123,8 +119,13 @@ def draw_seasonal_analysis(df):
 
     fig.update_layout(
         plot_bgcolor='white',
-        margin=dict(l=20, r=20, t=50, b=20),
-        height=350
+        height=400,
+        margin=dict(
+            l=20,
+            r=20,
+            t=50,
+            b=20
+        )
     )
 
     return fig
