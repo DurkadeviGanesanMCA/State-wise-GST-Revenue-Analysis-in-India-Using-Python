@@ -61,11 +61,45 @@ def draw_mom_growth(df):
     return fig
 
 def draw_seasonal_analysis(df):
-    months_order = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']
-    seasonal = df.groupby('Month')['Total_GST'].mean().reindex(months_order).reset_index()
-    fig = px.bar(seasonal, x='Month', y='Total_GST', title="Seasonal Analysis (Average by Month)")
+    months_order = [
+        '01', '02', '03', '04', '05', '06',
+        '07', '08', '09', '10', '11', '12'
+    ]
+
+    # Clean Month values
+    df = df.copy()
+    df['Month'] = df['Month'].astype(str).str.strip().str.zfill(2)
+
+    # Calculate average GST
+    seasonal = (
+        df.groupby('Month', as_index=False)['Total_GST']
+        .mean()
+    )
+
+    # Set correct month order
+    seasonal['Month'] = pd.Categorical(
+        seasonal['Month'],
+        categories=months_order,
+        ordered=True
+    )
+
+    seasonal = seasonal.sort_values('Month')
+
+    fig = px.bar(
+        seasonal,
+        x='Month',
+        y='Total_GST',
+        title='Seasonal Analysis (Average by Month)'
+    )
+
     fig.update_traces(marker_color='#ea580c')
-    fig.update_layout(plot_bgcolor='white', margin=dict(l=20, r=20, t=40, b=20), height=250)
+
+    fig.update_layout(
+        plot_bgcolor='white',
+        margin=dict(l=20, r=20, t=40, b=20),
+        height=250
+    )
+
     return fig
 
 def draw_anomaly_detection(df):
