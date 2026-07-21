@@ -61,7 +61,7 @@ def draw_mom_growth(df):
     return fig
 
 def draw_seasonal_analysis(df):
-    months_order = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    months_order = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
     seasonal = df.groupby('Month')['Total_GST'].mean().reindex(months_order).reset_index()
     fig = px.bar(seasonal, x='Month', y='Total_GST', title="Seasonal Analysis (Average by Month)")
     fig.update_traces(marker_color='#ea580c')
