@@ -61,10 +61,13 @@ def draw_mom_growth(df):
     return fig
 
 def draw_seasonal_analysis(df):
-    # Make a copy
+    months_order = [
+        '01', '02', '03', '04', '05', '06',
+        '07', '08', '09', '10', '11', '12'
+    ]
+
     data = df.copy()
 
-    # Clean Month column
     data['Month'] = (
         data['Month']
         .astype(str)
@@ -72,19 +75,11 @@ def draw_seasonal_analysis(df):
         .str.zfill(2)
     )
 
-    # Calculate average GST by month
     seasonal = (
         data.groupby('Month', as_index=False)['Total_GST']
         .mean()
     )
 
-    # Explicit month order
-    months_order = [
-        '01', '02', '03', '04', '05', '06',
-        '07', '08', '09', '10', '11', '12'
-    ]
-
-    # Sort according to month order
     seasonal['Month'] = pd.Categorical(
         seasonal['Month'],
         categories=months_order,
@@ -92,8 +87,6 @@ def draw_seasonal_analysis(df):
     )
 
     seasonal = seasonal.sort_values('Month')
-
-    # Convert back to string for Plotly
     seasonal['Month'] = seasonal['Month'].astype(str)
 
     fig = px.bar(
@@ -105,12 +98,13 @@ def draw_seasonal_analysis(df):
     )
 
     fig.update_traces(marker_color='#ea580c')
-    
-     fig.update_yaxes(
+
+    fig.update_yaxes(
         title_text='Total GST (₹ Crore)',
         tickformat='.1f',
         ticksuffix=' Cr'
     )
+
     fig.update_layout(
         plot_bgcolor='white',
         margin=dict(l=20, r=20, t=40, b=20),
