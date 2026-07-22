@@ -210,30 +210,26 @@ def draw_mom_growth(df):
     return apply_common_layout(fig)
 
 
-# =====================================================
-# Seasonal Analysis
-# =====================================================
 def draw_seasonal_analysis(df):
-
-    order = [f"{i:02d}" for i in range(1,13)]
 
     temp = df.copy()
 
-    temp["Month"] = (
-        temp["Month"]
-        .astype(str)
-        .str.zfill(2)
-    )
+    # Convert Month column to datetime
+    temp["Month"] = pd.to_datetime(temp["Month"])
+
+    # Extract month number
+    temp["Month"] = temp["Month"].dt.strftime("%m")
+
+    month_order = [f"{i:02d}" for i in range(1, 13)]
 
     seasonal = (
-        temp.groupby("Month")["Total_GST"]
+        temp.groupby("Month", as_index=False)["Total_GST"]
         .mean()
-        .reset_index()
     )
 
     seasonal["Month"] = pd.Categorical(
         seasonal["Month"],
-        categories=order,
+        categories=month_order,
         ordered=True
     )
 
@@ -243,11 +239,18 @@ def draw_seasonal_analysis(df):
         seasonal,
         x="Month",
         y="Total_GST",
-        title="Seasonal Analysis",
-        category_orders={"Month": order}
+        title="Seasonal Analysis (Average by Month)",
+        category_orders={"Month": month_order},
+        text="Total_GST"
     )
 
-    fig.update_traces(marker_color="#ea580c")
+    fig.update_traces(
+        marker_color="#ea580c",
+        texttemplate="%{text:.0f}",
+        textposition="outside"
+    )
+
+    fig.update_xaxes(title="Month")
 
     fig.update_yaxes(
         title="Average GST (₹ Crore)",
