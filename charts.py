@@ -245,7 +245,7 @@ def draw_seasonal_analysis(df):
     )
 
     fig.update_traces(
-        marker_color="#ea580c",
+        marker_color="#0000FF",
         texttemplate="%{text:.0f}",
         textposition="outside"
     )
