@@ -42,8 +42,7 @@ st.sidebar.title("Filters")
 available_years = sorted(raw_df["Year"].unique())
 selected_years = st.sidebar.multiselect(
     "Select Year",
-    available_years,
-    default=available_years
+    available_years
 )
 
 available_states = ["All"] + sorted(raw_df["State Name"].unique())
