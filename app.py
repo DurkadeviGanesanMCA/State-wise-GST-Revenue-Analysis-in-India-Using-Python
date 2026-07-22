@@ -3,102 +3,211 @@ import pandas as pd
 from utils import load_and_filter_data, calculate_kpis
 import charts
 
-# Page Configurations
+# ==========================================================
+# Page Configuration
+# ==========================================================
 st.set_page_config(
     page_title="GST Collection Dashboard",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Ingest Global Custom CSS Layout Structures
-#with open("style.css") as f:
-    #st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+# ==========================================================
+# Dashboard Spacing
+# ==========================================================
+st.markdown("""
+<style>
+.block-container{
+    padding-top:1rem;
+    padding-bottom:1rem;
+    padding-left:2rem;
+    padding-right:2rem;
+}
+</style>
+""", unsafe_allow_html=True)
 
-# Main Data Pipeline
+# ==========================================================
+# Load Data
+# ==========================================================
 DATA_FILE = "cleaned_data.csv"
-raw_df = pd.read_csv(DATA_FILE)
 
+raw_df = pd.read_csv(DATA_FILE)
 raw_df["Year"] = pd.to_datetime(raw_df["Year"]).dt.year
 
-# Sidebar Filter Implementation Elements
+# ==========================================================
+# Sidebar Filters
+# ==========================================================
 st.sidebar.title("Filters")
-available_years = sorted(list(raw_df['Year'].unique()))
-selected_years = st.sidebar.multiselect("Select Year", available_years, default=available_years)
 
-available_states = ["All"] + sorted(list(raw_df['State Name'].unique()))
-selected_states = st.sidebar.selectbox("Select State Name", available_states, index=0)
+available_years = sorted(raw_df["Year"].unique())
+selected_years = st.sidebar.multiselect(
+    "Select Year",
+    available_years,
+    default=available_years
+)
 
-# Filter Dataset based on selections
-filtered_df = load_and_filter_data(DATA_FILE, selected_years, [selected_states] if selected_states != "All" else None)
+available_states = ["All"] + sorted(raw_df["State Name"].unique())
+
+selected_state = st.sidebar.selectbox(
+    "Select State",
+    available_states
+)
+
+filtered_df = load_and_filter_data(
+    DATA_FILE,
+    selected_years,
+    [selected_state] if selected_state != "All" else None
+)
+
 metrics = calculate_kpis(filtered_df)
 
-# Dashboard Title Area
-# st.title("📊 GST Collection Dashboard")
+# ==========================================================
+# Dashboard Title
+# ==========================================================
 st.markdown(
     """
-    <h1 style="color:#0000FF; font-size:42px; font-weight:bold;">
+    <h1 style="text-align:center;
+               color:#1d4ed8;
+               font-size:42px;
+               font-weight:bold;">
         📊 State-Wise GST Analysis Dashboard
     </h1>
     """,
-    unsafe_allow_html=True,
+    unsafe_allow_html=True
 )
 
-# --- Row 1: Key Performance Metrics Blocks (KPIs) ---
-kpi_col1, kpi_col2, kpi_col3, kpi_col4 = st.columns(4)
+# ==========================================================
+# KPI SECTION
+# ==========================================================
+kpi1, kpi2, kpi3, kpi4 = st.columns(4)
 
-with kpi_col1:
-    st.markdown(f'''<div class="metric-card"><div>
-        <p class="metric-title">Total_GST</p>
-        <p class="metric-value">₹ {metrics["total_gst"]:,} Cr</p>
-    </div><span style="font-size:30px;">🔵</span></div>''', unsafe_allow_html=True)
+with kpi1:
+    st.metric(
+        "Total GST",
+        f"₹ {metrics['total_gst']:,} Cr"
+    )
 
-with kpi_col2:
-    st.markdown(f'''<div class="metric-card"><div>
-        <p class="metric-title">Average GST</p>
-        <p class="metric-value">₹ {int(metrics["avg_gst"]):,} Cr</p>
-    </div><span style="font-size:30px;">📈</span></div>''', unsafe_allow_html=True)
+with kpi2:
+    st.metric(
+        "Average GST",
+        f"₹ {int(metrics['avg_gst']):,} Cr"
+    )
 
-with kpi_col3:
-    st.markdown(f'''<div class="metric-card"><div>
-        <p class="metric-title">Top State ({metrics["top_state"]})</p>
-        <p class="metric-value">₹ {metrics["top_val"]:,} Cr</p>
-    </div><span style="font-size:30px;">🏆</span></div>''', unsafe_allow_html=True)
+with kpi3:
+    st.metric(
+        f"Top State ({metrics['top_state']})",
+        f"₹ {metrics['top_val']:,} Cr"
+    )
 
-with kpi_col4:
-    st.markdown(f'''<div class="metric-card"><div>
-        <p class="metric-title">Bottom State ({metrics["bottom_state"]})</p>
-        <p class="metric-value">₹ {metrics["bottom_val"]:,} Cr</p>
-    </div><span style="font-size:30px;">🚨</span></div>''', unsafe_allow_html=True)
+with kpi4:
+    st.metric(
+        f"Bottom State ({metrics['bottom_state']})",
+        f"₹ {metrics['bottom_val']:,} Cr"
+    )
 
-# --- Row 2: Global Trends & Geographical Collection distributions ---
-row2_col1, row2_col2 = st.columns([1, 1])
-with row2_col1:
-    st.plotly_chart(charts.draw_total_gst_trend(filtered_df), use_container_width=True)
-with row2_col2:
-    st.plotly_chart(charts.draw_state_wise_collection(filtered_df), use_container_width=True)
+st.divider()
 
-# --- Row 3: Component Structural Breakdown & State Leaderboards ---
-row3_col1, row3_col2, row3_col3 = st.columns([1, 1, 1])
-with row3_col1:
-    st.plotly_chart(charts.draw_component_donut(filtered_df), use_container_width=True)
-with row3_col2:
-    st.plotly_chart(charts.draw_top_states_bar(filtered_df), use_container_width=True)
-with row3_col3:
-    st.plotly_chart(charts.draw_bottom_states_bar(filtered_df), use_container_width=True)
+# ==========================================================
+# Row 2 : GST Components & Rankings
+# ==========================================================
+col1, col2, col3 = st.columns(3, gap="medium")
 
-# --- Row 4: Deep Insights and Analytics Matrix ---
-row4_col1, row4_col2, row4_col3, row4_col4 = st.columns(4)
-with row4_col1:
-    st.plotly_chart(charts.draw_yoy_growth(), use_container_width=True)
-with row4_col2:
-    st.plotly_chart(charts.draw_mom_growth(filtered_df), use_container_width=True)
-with row4_col3:
-    st.plotly_chart(charts.draw_seasonal_analysis(filtered_df), use_container_width=True)
-with row4_col4:
-    st.plotly_chart(charts.draw_anomaly_detection(filtered_df), use_container_width=True)
+with col1:
+    st.plotly_chart(
+        charts.draw_component_donut(filtered_df),
+        use_container_width=True
+    )
 
-# --- Row 5: Detailed Data Ingestion Table ---
+with col2:
+    st.plotly_chart(
+        charts.draw_top_states_bar(filtered_df),
+        use_container_width=True
+    )
+
+with col3:
+    st.plotly_chart(
+        charts.draw_bottom_states_bar(filtered_df),
+        use_container_width=True
+    )
+
+st.divider()
+
+# ==========================================================
+# Row 3 : Trends
+# ==========================================================
+col4, col5 = st.columns(2, gap="medium")
+
+with col4:
+    st.plotly_chart(
+        charts.draw_total_gst_trend(filtered_df),
+        use_container_width=True
+    )
+
+with col5:
+    st.plotly_chart(
+        charts.draw_state_wise_collection(filtered_df),
+        use_container_width=True
+    )
+
+st.divider()
+
+# ==========================================================
+# Row 4 : Advanced Analytics
+# ==========================================================
+col6, col7, col8 = st.columns(3, gap="medium")
+
+with col6:
+    st.plotly_chart(
+        charts.draw_yoy_growth(),
+        use_container_width=True
+    )
+
+with col7:
+    st.plotly_chart(
+        charts.draw_mom_growth(filtered_df),
+        use_container_width=True
+    )
+
+with col8:
+    st.plotly_chart(
+        charts.draw_anomaly_detection(filtered_df),
+        use_container_width=True
+    )
+
+st.divider()
+
+# ==========================================================
+# Row 5 : Seasonal Analysis
+# ==========================================================
+st.plotly_chart(
+    charts.draw_seasonal_analysis(filtered_df),
+    use_container_width=True
+)
+
+st.divider()
+
+# ==========================================================
+# Row 6 : Data Table
+# ==========================================================
 st.subheader("GST Data Ledger")
-st.dataframe(filtered_df, use_container_width=True, hide_index=True)
 
-st.markdown("<p style='text-align: center; color: gray; font-size:12px; margin-top:50px;'>GST Collection Dashboard | Developed using Streamlit & Plotly</p>", unsafe_allow_html=True)
+st.dataframe(
+    filtered_df,
+    use_container_width=True,
+    hide_index=True
+)
+
+# ==========================================================
+# Footer
+# ==========================================================
+st.markdown(
+    """
+    <p style="text-align:center;
+              color:gray;
+              font-size:12px;
+              margin-top:30px;">
+        GST Collection Dashboard | Developed using Streamlit & Plotly
+    </p>
+    """,
+    unsafe_allow_html=True
+)
