@@ -88,7 +88,7 @@ def draw_component_donut(df):
     fig = px.pie(
         values=values,
         names=labels,
-        hole=0.5,
+        hole=0.9,
         title="GST Component Contribution",
         color_discrete_sequence=[
             "#1d4ed8",
