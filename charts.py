@@ -96,6 +96,7 @@ def draw_component_donut(df):
             "#34d399",
             "#f87171"
         ]
+           showlegend=False
     )
 
     fig.update_traces(textinfo="percent+label")
