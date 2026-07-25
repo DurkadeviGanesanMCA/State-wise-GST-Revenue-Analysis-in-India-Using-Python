@@ -305,7 +305,7 @@ def draw_anomaly_detection(df):
                 mode="markers",
                 marker=dict(
                     color="red",
-                    size=12
+                    size=7
                 ),
                 name="Anomaly"
             )
