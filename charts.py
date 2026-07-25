@@ -88,21 +88,32 @@ def draw_component_donut(df):
     fig = px.pie(
         values=values,
         names=labels,
-        hole=0.4,
-        title="GST Component Contribution",
+        hole=0.5,
         color_discrete_sequence=[
             "#1d4ed8",
             "#60a5fa",
             "#34d399",
             "#f87171"
         ]
-           showlegend=False
     )
 
-    fig.update_traces(textinfo="percent+label")
+    fig.update_traces(
+        textinfo="label+percent",
+        textposition="inside",
+        showlegend=False
+    )
 
-    return apply_common_layout(fig)
+    fig = apply_common_layout(fig)
 
+    fig.update_layout(
+        title={
+            "text": "GST Component Contribution",
+            "x": 0.5,
+            "xanchor": "center"
+        }
+    )
+
+    return fig
 
 # =====================================================
 # Top 10 States
