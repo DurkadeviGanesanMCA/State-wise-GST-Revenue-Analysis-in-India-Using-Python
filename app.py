@@ -153,7 +153,7 @@ st.divider()
 # ==========================================================
 # Row 4 : Advanced Analytics
 # ==========================================================
-col6, col7, col8 = st.columns(3, gap="medium")
+col6, col7 = st.columns(2, gap="medium")
 
 with col6:
     st.plotly_chart(
@@ -167,22 +167,23 @@ with col7:
         use_container_width=True
     )
 
-with col8:
-    st.plotly_chart(
-        charts.draw_anomaly_detection(filtered_df),
-        use_container_width=True
-    )
-
 st.divider()
 
 # ==========================================================
 # Row 5 : Seasonal Analysis
 # ==========================================================
-st.plotly_chart(
-    charts.draw_seasonal_analysis(filtered_df),
-    use_container_width=True
-)
+col8, col9 = st.columns(2, gap="medium")
 
+with col8:
+    st.plotly_chart(
+        charts.draw_seasonal_analysis(filtered_df),
+        use_container_width=True
+)
+with col9:
+    st.plotly_chart(
+        charts.draw_anomaly_detection(filtered_df),
+        use_container_width=True
+    )
 st.divider()
 
 # ==========================================================
