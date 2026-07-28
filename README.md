@@ -66,8 +66,6 @@ Dataset contains:
 - Growth Metrics
 - Anomaly Flags
 
-:contentReference[oaicite:2]{index=2}
-
 ---
 
 # 🛠️ Technology Stack
@@ -87,37 +85,6 @@ Dataset contains:
 | Plotly | Interactive Charts |
 | Datetime | Date Processing |
 | Streamlit | Dashboard Development |
-
-:contentReference[oaicite:3]{index=3}
-
----
-
-# 🔄 Project Workflow
-
-
-📥 Data Collection
-|
-↓
-🧹 Data Cleaning
-|
-↓
-🔍 Exploratory Data Analysis
-|
-↓
-⚙️ Feature Engineering
-|
-↓
-📊 Statistical Analysis
-|
-↓
-📈 Visualization
-|
-↓
-📌 Business Insights
-|
-↓
-🚀 Interactive Dashboard
-
 
 ---
 
@@ -227,7 +194,6 @@ Possible reasons:
 ✅ Compliance improvements  
 ✅ Data quality issues  
 
-:contentReference[oaicite:8]{index=8}
 
 ---
 
@@ -245,8 +211,6 @@ An interactive Streamlit dashboard was developed for:
 
 [Open Streamlit Dashboard](https://state-wise-gst-revenue-analysis-in-india-using-python-ddfwyazy.streamlit.app/)
 
-:contentReference[oaicite:9]{index=9}
-
 ---
 
 # 💡 Key Business Insights
@@ -263,8 +227,6 @@ An interactive Streamlit dashboard was developed for:
 
 🔹 Data analytics can support revenue forecasting and policy decisions.  
 
-:contentReference[oaicite:10]{index=10}
-
 ---
 
 # 🔮 Future Enhancements
@@ -280,29 +242,11 @@ An interactive Streamlit dashboard was developed for:
 
 # 📁 Project Structure
 
-
-GST-Revenue-Analysis/
-│
-├── 📂 Dataset/
-│ └── gst_collection.csv
-│
-├── 📂 Notebook/
-│ └── GST_Analysis.ipynb
-│
-├── 📂 Dashboard/
-│ └── app.py
-│
-├── 📂 Images/
-│ └── charts/
-│
-├── requirements.txt
-│
-└── README.md
-
-
 ---
 
 # 👨‍💻 Author
+
+**Durkadevi**
 
 **Python Data Analytics Project**
 
