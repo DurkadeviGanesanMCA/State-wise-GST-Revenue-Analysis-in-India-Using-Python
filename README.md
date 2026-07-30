@@ -110,7 +110,6 @@ Dataset contains:
 | 🟠 CESS | 1,068,567.04 |
 
 📌 **IGST contributes the highest share**, followed by SGST and CGST.  
-:contentReference[oaicite:4]{index=4}
 
 ---
 
@@ -125,7 +124,6 @@ Dataset contains:
 | 5️⃣ | Uttar Pradesh | 630,974.71 |
 
 📌 Maharashtra leads GST contribution due to strong industrial activity, business ecosystem, and consumer market.  
-:contentReference[oaicite:5]{index=5}
 
 ---
 
@@ -149,8 +147,6 @@ Dataset contains:
 📉 COVID-19 impact visible during 2020  
 ⚠️ Recent declines require data completeness validation  
 
-:contentReference[oaicite:6]{index=6}
-
 ---
 
 # 📊 Statistical Insights
@@ -170,8 +166,6 @@ Dataset contains:
 ✔ GST revenue distribution is positively skewed  
 ✔ Few high-value observations influence averages  
 ✔ Heavy-tailed distribution indicates extreme revenue events  
-
-:contentReference[oaicite:7]{index=7}
 
 ---
 
@@ -262,4 +256,5 @@ Give this repository a ⭐ and share your feedback!
 
 ## 📬 Contact
 
-Feel free to connect for collaboration, analytics projects, and data science discussion
+Feel free to connect for collaboration, analytics project discussion
+ 
